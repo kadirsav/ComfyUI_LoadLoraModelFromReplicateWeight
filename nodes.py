@@ -135,13 +135,13 @@ class LoadLoraModelOnlyWithUrl:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "model": ("MODEL",),
                 "url": ("STRING", {"default": ""}),
+                "model": ("MODEL",),
                 "strength_model": (
                     "FLOAT",
                     {"default": 1.0, "min": -20.0, "max": 20.0, "step": 0.01},
                 ),
-            }
+            },
         }
 
     RETURN_TYPES = ("MODEL",)
@@ -156,12 +156,13 @@ class LoadLoraModelOnlyWithUrl:
             model,
             url: str,
             strength_model: float,
-            strength_clip: float,
     ):
         if strength_model == 0:
             return (model, )
 
-        lora_path = get_lora_from_url(url)
+        lora_path = get_lora_from_url(
+            url,
+        )
 
         lora = None
         if self.loaded_lora is not None:
@@ -179,6 +180,10 @@ class LoadLoraModelOnlyWithUrl:
             self.loaded_lora = lora
             self.loaded_lora_path = lora_path
         model_lora, _ = comfy.sd.load_lora_for_models(
-            model, None, lora, strength_model, strength_clip
+            model, 
+            None, 
+            lora, 
+            strength_model, 
+            0,
         )
         return (model_lora, )
