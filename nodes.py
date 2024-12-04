@@ -186,3 +186,13 @@ class LoadLoraModelOnlyWithUrl:
             0,
         )
         return (model_lora, )
+
+
+
+NODE_CLASS_MAPPINGS = {
+    "LoadLoraModelOnlyWithUrl": LoadLoraModelOnlyWithUrl,
+}
+
+NODE_DISPLAY_NAME_MAPPINGS = {
+    "LoadLoraModelOnlyWithUrl": "Load Lora Model Only from URL",
+}
