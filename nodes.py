@@ -163,7 +163,6 @@ class LoadLoraModelOnlyWithUrl:
         lora_path = get_lora_from_url(
             url,
         )
-
         lora = None
         if self.loaded_lora is not None:
             if self.loaded_lora_path == lora_path:
@@ -180,10 +179,10 @@ class LoadLoraModelOnlyWithUrl:
             self.loaded_lora = lora
             self.loaded_lora_path = lora_path
         model_lora, _ = comfy.sd.load_lora_for_models(
-            model, 
-            None, 
-            lora, 
-            strength_model, 
+            model,
+            None,
+            lora,
+            strength_model,
             0,
         )
         return (model_lora, )
