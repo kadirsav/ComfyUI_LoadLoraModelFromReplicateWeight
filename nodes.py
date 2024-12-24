@@ -5,7 +5,10 @@ import comfy.utils
 from huggingface_hub import hf_hub_download
 import requests
 import hashlib
-
+import tempfile
+import tarfile
+import shutil
+import glob
 
 def download_file(url, filename):
     # make dirs recursively
@@ -17,6 +20,27 @@ def download_file(url, filename):
     else:
         raise Exception(f"Failed to download file. Status code: {response.status_code}")
 
+def download_replicate_file(url, filename):
+    # Create a temporary directory to extract files
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Download the tar file to a temporary file
+        temp_tar = os.path.join(temp_dir, "model.tar")
+        download_file(url, temp_tar)
+        
+        # Extract the tar file
+        with tarfile.open(temp_tar) as tar:
+            tar.extractall(temp_dir)
+        
+        # Find the safetensors file
+        safetensors_files = glob.glob(os.path.join(temp_dir, "**/*.safetensors"), recursive=True)
+        if not safetensors_files:
+            raise Exception("No safetensors file found in the downloaded archive")
+        
+        # Create the target directory if it doesn't exist
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        
+        # Move the first safetensors file to the target location
+        shutil.copy2(safetensors_files[0], filename)
 
 def get_filename_from_url(url: str, extension: str):
     # md5 hash the url to get a unique filename
@@ -113,6 +137,13 @@ def get_lora_from_url(url: str):
         if not os.path.exists(lora_path):
             # will fail for most if api key not set
             download_file(url, lora_path)
+    elif 'replicate.delivery' in url:
+        url_parts = url.replace('https://replicate.delivery/', '').split('/')
+        save_filename = f"{url_parts[0]}-{url_parts[1]}.safetensors"
+        lora_path = os.path.join(find_or_create_cache(), 'general', save_filename)
+        # check if the file already exists
+        if not os.path.exists(lora_path):
+            download_replicate_file(url, lora_path)
     else:
         # could be stored somewhere else
         if not url.lower().split("?")[0].endswith("safetensors"):
@@ -186,7 +217,6 @@ class LoadLoraModelOnlyWithUrl:
             0,
         )
         return (model_lora, )
-
 
 
 NODE_CLASS_MAPPINGS = {
